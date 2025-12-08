@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Loan Application</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Loan Application</h2>
+    <form id="loanForm">
+      <h3>Customer Details</h3>
+      <input type="text" id="name" name="name" placeholder="Name" required/>
+      <input type="email" id="email" name="email" placeholder="Email" required/>
+      <input type="text" id="phone" name="phone" placeholder="Phone" required pattern="\d{10}"/>
+      <input type="text" id="pan" name="pan" placeholder="PAN" required pattern="[A-Z]{5}[0-9]{4}[A-Z]"/>
+      <input type="text" id="aadhar" name="aadhar" placeholder="Aadhar" required pattern="\d{12}"/>
+      <input type="date" id="dob" name="dob" required/>
+
+      <h3>Loan Details</h3>
+      <input type="number" id="amount" name="amount" placeholder="Amount" min="50000" max="1000000" required/>
+      <input type="number" id="tenure" name="tenure" placeholder="Tenure (months)" min="6" max="360" required/>
+      <select id="purpose" name="purpose">
+        <option>Home Renovation</option>
+        <option>Medical Expense</option>
+        <option>Education</option>
+        <option>Wedding</option>
+      </select>
+
+      <div>
+        Monthly EMI: <span id="emiValue">-</span>
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+<script>
+$(document).ready(function(){
+  function calculateEmi(P, n, annualRate) {
+    if (!P || !n || !annualRate) return null;
+    var r = annualRate / 1200;
+    var onePlusRpowN = Math.pow(1 + r, n);
+    var emi = (P * r * onePlusRpowN) / (onePlusRpowN - 1);
+    return emi.toFixed(2);
+  }
+
+  // realtime EMI calculation on changes (jQuery DOM event)
+  $('#amount, #tenure').on('input', function(){
+    var P = parseFloat($('#amount').val());
+    var n = parseInt($('#tenure').val());
+    var annualRate = 12; // default or fetch from input
+    var emi = calculateEmi(P, n, annualRate);
+    $('#emiValue').text(emi ? '₹ ' + emi : '-');
+  });
+
+  $('#loanForm').on('submit', function(e){
+    e.preventDefault();
+    var payload = {
+      customerId: null, // client may register first; for demo, assume registered id
+      amount: parseFloat($('#amount').val()),
+      tenureMonths: parseInt($('#tenure').val()),
+      annualInterestRate: 12.0,
+      purpose: $('#purpose').val()
+    };
+    // AJAX call to API
+    $.ajax({
+      url: '/api/loans/apply',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      beforeSend: function(){ /* show spinner */ },
+      success: function(res){ alert('Application submitted'); },
+      error: function(xhr){ alert('Error: ' + xhr.responseText); }
+    });
+  });
+});
+</script>
+</body>
+</html>

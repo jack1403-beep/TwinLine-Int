@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Loan Application</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    body { font-family: Arial; }
+    .container { width: 600px; margin: auto; margin-top: 20px; }
+    input, select { width: 100%; padding: 8px; margin: 8px 0; }
+    button { padding: 10px 20px; background: #007bff; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .section-title { margin-top: 20px; font-size: 18px; font-weight: bold; }
+    #emiValue { font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Loan Application (Single Button Flow)</h2>
+
+    <form id="loanForm">
+      <div class="section-title">Customer Details</div>
+      <input type="text" id="name" placeholder="Full Name" required/>
+      <input type="email" id="email" placeholder="Email" required/>
+      <input type="text" id="phone" placeholder="Phone (10 digits)" required/>
+      <input type="text" id="pan" placeholder="PAN" required/>
+      <input type="text" id="aadhar" placeholder="Aadhar Number" required/>
+      <input type="date" id="dob" required/>
+
+      <div class="section-title">Loan Details</div>
+      <input type="number" id="amount" placeholder="Loan Amount" min="50000" required/>
+      <input type="number" id="tenure" placeholder="Tenure (months)" min="6" required/>
+
+      <select id="purpose">
+        <option>Home Renovation</option>
+        <option>Medical Expense</option>
+        <option>Education</option>
+        <option>Wedding</option>
+      </select>
+
+      <div>
+        <strong>Monthly EMI:</strong> <span id="emiValue">-</span>
+      </div>
+
+      <button type="submit">Submit Application</button>
+    </form>
+  </div>
+
+<script>
+$(document).ready(function(){
+
+  function calculateEmi(P, n, annualRate) {
+    if (!P || !n) return null;
+    var r = annualRate / 1200;
+    var pow = Math.pow(1 + r, n);
+    return ((P * r * pow) / (pow - 1)).toFixed(2);
+  }
+
+  // Live EMI calculation
+  $('#amount, #tenure').on('input', function() {
+    var P = parseFloat($('#amount').val());
+    var n = parseInt($('#tenure').val());
+    var emi = calculateEmi(P, n, 12);
+    $('#emiValue').text(emi ? '₹ ' + emi : '-');
+  });
+
+  $("#loanForm").on("submit", function(e){
+    e.preventDefault();
+
+    // Step 1: Register Customer
+    let customerPayload = {
+      name: $("#name").val(),
+      email: $("#email").val(),
+      phone: $("#phone").val(),
+      pan: $("#pan").val(),
+      aadhar: $("#aadhar").val(),
+      dob: $("#dob").val()
+    };
+
+    $.ajax({
+      url: "/api/customers",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(customerPayload),
+      success: function(customerResponse) {
+        const customerId = customerResponse.id;
+
+        // Step 2: Apply Loan
+        let loanPayload = {
+          customerId: customerId,
+          amount: parseFloat($("#amount").val()),
+          tenureMonths: parseInt($("#tenure").val()),
+          annualInterestRate: 12,
+          purpose: $("#purpose").val()
+        };
+
+        $.ajax({
+          url: "/api/loans/apply",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(loanPayload),
+          success: function(loanResponse){
+            alert("Loan Application Submitted Successfully!\nLoan ID: " + loanResponse.id);
+          },
+          error: function(xhr){
+            alert("Loan Error: " + xhr.responseText);
+          }
+        });
+      },
+      error: function(xhr){
+        alert("Customer Error: " + xhr.responseText);
+      }
+    });
+  });
+
+});
+</script>
+
+</body>
+</html>

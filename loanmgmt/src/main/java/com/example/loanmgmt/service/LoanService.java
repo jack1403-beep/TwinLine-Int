@@ -16,4 +16,7 @@ public interface LoanService {
 	List<LoanApplication> getLoansByCustomer(Long customerId);
 	LoanApplication approveLoan(Long loanId);
 	Emi payEmi(Long emiId, double amount);
+	List<LoanApplication> getAllLoans();
+	List<LoanApplication> searchLoans(String status, String name);
+	LoanApplication rejectLoan(Long loanId);
 }

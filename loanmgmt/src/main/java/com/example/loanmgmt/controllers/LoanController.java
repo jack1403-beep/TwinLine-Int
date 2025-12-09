@@ -2,6 +2,7 @@ package com.example.loanmgmt.controllers;
 
 import com.example.loanmgmt.model.LoanApplication;
 import com.example.loanmgmt.modeldto.CustomerDto;
+import com.example.loanmgmt.modeldto.CustomerResponse;
 import com.example.loanmgmt.modeldto.LoanApplyRequest;
 import com.example.loanmgmt.modeldto.PaymentRequest;
 import com.example.loanmgmt.model.Customer;

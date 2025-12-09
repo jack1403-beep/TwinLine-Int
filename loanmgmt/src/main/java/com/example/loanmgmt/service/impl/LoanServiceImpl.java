@@ -147,4 +147,39 @@ public class LoanServiceImpl implements LoanService {
     	}
     	return list;
       }
+      
+      public List<LoanApplication> getAllLoans(){
+    	  return loanRepo.findAll();
+      }
+      
+      @Override
+      public List<LoanApplication> searchLoans(String status, String name) {
+
+    	  if (status != null && name != null) {
+    	      return loanRepo.findByStatusAndCustomer_NameContainingIgnoreCase(status, name);
+    	  }
+
+    	  if (status != null) {
+    	      return loanRepo.findByStatus(status);
+    	  }
+
+    	  if (name != null) {
+    	      return loanRepo.findByCustomer_NameContainingIgnoreCase(name);
+    	  }
+
+    	  return loanRepo.findAll();
+    }
+      
+      @Override
+      public LoanApplication rejectLoan(Long loanId) {
+    	  LoanApplication la = loanRepo.findById(loanId)
+    			  .orElseThrow(() -> new RuntimeException("Loan not found"));
+    	  if (!la.getStatus().equals("PENDING")) {
+    		  throw new RuntimeException("Only PENDING loans can be rejected");
+    	  }
+    	  la.setStatus("REJECTED");
+    	  return loanRepo.save(la);
+      }
+      
+      
 }

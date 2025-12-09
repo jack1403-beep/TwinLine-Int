@@ -14,8 +14,13 @@ import java.util.List;
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, Long> {
 
     List<LoanApplication> findByCustomerId(Long customerId);
+    
+    List<LoanApplication> findByStatus(String status);
+    
+    List<LoanApplication> findByCustomer_NameContainingIgnoreCase(String name);
+    
+    List<LoanApplication> findByStatusAndCustomer_NameContainingIgnoreCase(
+            String status, String name
+    );
 
-    // Custom repository method — find loans by status and customer name (joins)
-    @Query("SELECT l FROM LoanApplication l WHERE l.status = :status AND lower(l.customer.name) LIKE lower(concat('%', :name, '%'))")
-    List<LoanApplication> findByStatusAndCustomerName(@Param("status") String status, @Param("name") String name);
 }

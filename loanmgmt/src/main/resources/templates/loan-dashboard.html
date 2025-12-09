@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Loan Details</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    body { font-family: Arial; }
+    .container { width: 600px; margin: auto; margin-top: 20px; }
+    input { width: 100%; padding: 8px; margin: 8px 0; }
+    button { padding: 10px 20px; background: #007bff; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #emiList li { margin-bottom: 4px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Loan Details / Approve Loan</h2>
+
+    <input type="number" id="loanIdInput" placeholder="Enter Loan ID"/>
+    <button id="fetchLoanBtn">Fetch Loan</button>
+
+    <div id="loanDetails" style="display:none; margin-top:20px;">
+      <p><b>Application No:</b> <span id="appNo"></span></p>
+      <p><b>Customer:</b> <span id="customerName"></span></p>
+      <p><b>Amount:</b> ₹ <span id="amount"></span></p>
+      <p><b>Tenure:</b> <span id="tenure"></span> months</p>
+      <p><b>Status:</b> <span id="status"></span></p>
+
+      <h4>EMI Schedule</h4>
+      <ul id="emiList"></ul>
+
+      <button id="approveBtn">Approve Loan</button>
+    </div>
+  </div>
+
+<script>
+$(document).ready(function(){
+  $("#fetchLoanBtn").on("click", function(){
+    var loanId = $("#loanIdInput").val();
+    if(!loanId) { alert("Enter Loan ID"); return; }
+
+    $.get("/api/loans/" + loanId, function(loan){
+      $("#loanDetails").show();
+      $("#appNo").text(loan.applicationNumber);
+      $("#customerName").text(loan.customerName);
+      $("#amount").text(loan.amount);
+      $("#tenure").text(loan.tenureMonths);
+      $("#status").text(loan.status);
+
+      // EMI schedule
+      let emiHtml = "";
+      if(loan.emis && loan.emis.length > 0){
+        loan.emis.forEach(function(e){
+          emiHtml += `<li>Month ${e.month}: ₹ ${e.emi} - Paid: ${e.paid}</li>`;
+        });
+      } else {
+        emiHtml = "<li>No EMI schedule</li>";
+      }
+      $("#emiList").html(emiHtml);
+
+      // Approve button visibility
+      if(loan.status === "PENDING"){
+        $("#approveBtn").show();
+      } else {
+        $("#approveBtn").hide();
+      }
+    });
+  });
+
+  $("#approveBtn").on("click", function(){
+    var loanId = $("#loanIdInput").val();
+    $.post("/api/loans/" + loanId + "/approve", function(loan){
+      alert("Loan Approved Successfully!");
+      $("#status").text(loan.status);
+      $("#approveBtn").hide();
+    });
+  });
+});
+</script>
+
+</body>
+</html>
